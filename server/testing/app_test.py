@@ -22,7 +22,7 @@ class TestApp:
 
             response = app.test_client().post(
                 '/baked_goods',
-                data={
+                json={
                     "name": "Apple Fritter",
                     "price": 2,
                     "bakery_id": 5,
@@ -41,20 +41,21 @@ class TestApp:
         with app.app_context():
 
             mb = Bakery.query.filter_by(id=1).first()
-            mb.name = "My Bakery"
-            db.session.add(mb)
-            db.session.commit()
+            if mb:
+                mb.name = "My Bakery"
+                db.session.add(mb)
+                db.session.commit()
 
-            response = app.test_client().patch(
-                '/bakeries/1',
-                data = {
-                    "name": "Your Bakery",
-                }
-            )
+                response = app.test_client().patch(
+                    '/bakeries/1',
+                    json={
+                        "name": "Your Bakery",
+                    }
+                )
 
-            assert(response.status_code == 200)
-            assert(response.content_type == 'application/json')
-            assert(mb.name == "Your Bakery")
+                assert response.status_code == 200
+                assert response.content_type == 'application/json'
+                assert mb.name == "Your Bakery"
 
     def test_deletes_baked_goods(self):
         '''can DELETE baked goods through "baked_goods/<int:id>" route.'''
@@ -71,11 +72,10 @@ class TestApp:
                 db.session.add(af)
                 db.session.commit()
             
-
             response = app.test_client().delete(
                 f'/baked_goods/{af.id}'
             )
 
-            assert(response.status_code == 200)
-            assert(response.content_type == 'application/json')
-            assert(not BakedGood.query.filter_by(name="Apple Fritter").first())
+            assert response.status_code == 200
+            assert response.content_type == 'application/json'
+            assert not BakedGood.query.filter_by(name="Apple Fritter").first()
